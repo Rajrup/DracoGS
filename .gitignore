@@ -230,4 +230,5 @@ pyrightconfig.json
 build/
 *.code-workspace
 .vscode/
+.github/
 *.ply
