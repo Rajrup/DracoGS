@@ -2,8 +2,8 @@
 Correctness test: verify in-memory pipeline produces identical results to CLI.
 
 Usage:
-    cd DracoGS/build
-    PYTHONPATH=compression python ../compression/test_dracogs.py
+    cd DracoGS
+    python compression/test_dracogs.py
 """
 
 import sys
@@ -17,13 +17,14 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(__file__))
 from compression_decompression import read_gs_ply, encode_dracogs, decode_dracogs, save_gs_ply
 
-TEST_PLY = "/synology/rajrup/VideoGS/train_output/HiFi4G_Dataset/4K_Actor1_Greeting/checkpoint/0/point_cloud/iteration_16000/point_cloud.ply"
+# TEST_PLY = "/synology/rajrup/VideoGS/train_output/HiFi4G_Dataset/4K_Actor1_Greeting/checkpoint/0/point_cloud/iteration_16000/point_cloud.ply"
+TEST_PLY = "/synology/rajrup/Queen/pretrained_output/Neural_3D_Video/queen_compressed_flame_salmon_1/frames/0001/point_cloud/iteration_8992/point_cloud.ply"
 
 BUILD_DIR = Path(__file__).resolve().parent.parent / "build"
 ENCODER = BUILD_DIR / "draco_encoder"
 DECODER = BUILD_DIR / "draco_decoder"
 
-QP, QFD, QFR1, QFR2, QFR3, QO, QS, QR, CL = 16, 8, 8, 8, 8, 8, 8, 8, 7
+QP, QFD, QFR1, QFR2, QFR3, QO, QS, QR, CL = 16, 16, 16, 16, 16, 16, 16, 16, 7
 
 
 def test_roundtrip():
@@ -41,7 +42,7 @@ def test_roundtrip():
     bitstream = encode_dracogs(gs, qp=QP, qfd=QFD, qfr1=QFR1, qfr2=QFR2,
                                qfr3=QFR3, qo=QO, qs=QS, qr=QR, cl=CL)
     t_enc = time.perf_counter() - t0
-    print(f"  Encoded: {len(bitstream)} bytes in {t_enc*1000:.1f} ms")
+    print(f"  Encoded: {len(bitstream) / 1024 / 1024:.2f} MB in {t_enc*1000:.1f} ms")
     print(f"  Compression ratio: {N * 62 * 4 / len(bitstream):.2f}x")
 
     print("\nDecoding in-memory ...")
@@ -49,6 +50,8 @@ def test_roundtrip():
     gs_dec = decode_dracogs(bitstream)
     t_dec = time.perf_counter() - t0
     print(f"  Decoded: {gs_dec['positions'].shape[0]} points in {t_dec*1000:.1f} ms")
+
+    save_gs_ply(gs_dec, "point_cloud_distorted.ply")
 
     print("\nAttribute shapes after decode:")
     for k, v in gs_dec.items():

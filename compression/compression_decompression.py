@@ -10,9 +10,15 @@ Usage:
     save_gs_ply(gs_dec, "output.ply")
 """
 
+import sys
 import numpy as np
 from pathlib import Path
 from plyfile import PlyData, PlyElement
+
+_this_dir = Path(__file__).resolve().parent
+_so_dir = _this_dir.parent / "build" / "compression"
+if _so_dir.is_dir() and str(_so_dir) not in sys.path:
+    sys.path.insert(0, str(_so_dir))
 
 import _dracogs
 

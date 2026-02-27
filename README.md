@@ -7,10 +7,10 @@ cd DracoGS
 conda create -n dracogs python=3.10 -y
 conda activate dracogs
 pip install numpy==1.26.4
-pip install plyfile
+pip install pybind11 plyfile
 
 mkdir build && cd build
-cmake ..
+cmake .. -DDRACOGS_BUILD_PYTHON=ON -Dpybind11_DIR=$(python -m pybind11 --cmakedir)
 make -j$(nproc)
 ```
 
@@ -65,17 +65,6 @@ cl: Compression level (0 - 10, 0 is fastest-least compression and 10 is slowest-
 ## Python API (In-Memory Pipeline)
 
 The Python module eliminates intermediate disk I/O by compressing and decompressing entirely in memory using numpy arrays.
-
-### Build
-
-```bash
-pip install pybind11 numpy plyfile
-
-cd DracoGS
-mkdir build && cd build
-cmake .. -DDRACOGS_BUILD_PYTHON=ON -Dpybind11_DIR=$(python -m pybind11 --cmakedir)
-make -j$(nproc)
-```
 
 ### Usage
 
