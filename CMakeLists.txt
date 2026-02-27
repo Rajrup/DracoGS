@@ -19,6 +19,11 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+option(DRACOGS_BUILD_PYTHON "Build pybind11 Python module for DracoGS" OFF)
+if(DRACOGS_BUILD_PYTHON)
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+endif()
+
 set(draco_root "${CMAKE_CURRENT_SOURCE_DIR}")
 set(draco_src_root "${draco_root}/src/draco")
 set(draco_build "${CMAKE_BINARY_DIR}")
@@ -1140,6 +1145,10 @@ else()
 
   draco_setup_install_target()
   draco_setup_test_targets()
+endif()
+
+if(DRACOGS_BUILD_PYTHON)
+  add_subdirectory(compression)
 endif()
 
 if(DRACO_VERBOSE)

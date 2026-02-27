@@ -228,3 +228,5 @@ expData
 output
 pyrightconfig.json
 build/
+*.code-workspace
+.vscode/

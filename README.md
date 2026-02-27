@@ -1,99 +1,114 @@
-# Draco for 3D Gaussian Splatting
+## Build Draco for 3DGS
 
-This is a variant of [Google Draco Compression](https://google.github.io/draco/) to support [original 3D Gaussian splatting (3DGS)](https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/) content.
-
-Draco is an open-source library for compressing and decompressing 3D geometric meshes and point clouds. It is intended to improve the storage and transmission of 3D graphics.
-
-However, this project is only focused on encode and decode 3DGS, so compressing 3D meshes or 3D point cloud is not supported.
-
-## Build (C++ execution)
-
-### Build (Ubuntu and MACOS)
 ```bash
-mkdir build_dir && cd build_dir
-cmake ../
-make
+git clone --recursive https://github.com/Rajrup/Draco-for-3DGS.git DracoGS
+cd DracoGS
+
+conda create -n dracogs python=3.10 -y
+conda activate dracogs
+pip install numpy==1.26.4
+pip install plyfile
+
+mkdir build && cd build
+cmake ..
+make -j$(nproc)
 ```
 
-## Build (Javascript WebAssembly) (Test in MACOS)
+## Run Draco for 3DGS
+
+- Convert 3DGS to Draco Ply format
+
+  - Method 1: Convert 3DGS to Draco Ply format using the script
+
 ```bash
-mkdir build_dir && cd build_dir
-export EMSCRIPTEN=/path_to_emsdk/upstream/emscripten
-# for example: export EMSCRIPTEN=/Users/syjintw/Desktop/MMSys25_RU/emsdk/upstream/emscripten
-cmake ../ -DCMAKE_TOOLCHAIN_FILE=/path_to_emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DDRACO_WASM=ON
-# for example: cmake ../ -DCMAKE_TOOLCHAIN_FILE=/Users/syjintw/Desktop/MMSys25_RU/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake -DDRACO_WASM=ON
-make
-java -jar ../additional/closure-compiler-v20210302.jar --compilation_level SIMPLE --js draco_decoder.js --js_output_file draco_wasm_wrapper.js
+python mytool/3DGS_pcd_to_draco_pcd.py -i /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/ply/point_cloud_29999.ply -o /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999.ply
 ```
 
-## Usage
-**[!] You should change the 3DGS data to ASCII format before you encode.**
+  - Method 2: Convert 3DGS to Draco Ply format using the script
 
-## Change binary format to ASCII format
 ```bash
-python ./mytool/3DGS_pcd_to_draco_pcd.py -i ./myData/ficus.ply -o ./myData/ficus_3dgs.ply
+python mytool/3DGS_pcd_to_draco_pcd2.py -i /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/ply/point_cloud_29999.ply -o /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999_2.ply
 ```
 
-## Encode (C++ execution)
-### Simple
+- Encode 3DGS to Draco format
+
 ```bash
-./build_dir/draco_encoder -point_cloud \
--i ./myData/ficus_3dgs.ply \
--o ./myData/ficus_3dgs_compressed.drc
+# Encoder: Default parameters
+./build/draco_encoder -point_cloud -i /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999.ply -o /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999_compressed.drc
+
+# Decoder: Default parameters
+./build/draco_decoder -i /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999_compressed.drc -o /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999_decompressed.ply
 ```
 
-### More complex setup
 ```bash
-./build_dir/draco_encoder -point_cloud \
--i ./myData/ficus_3dgs.ply \
--o ./myData/ficus_3dgs_compressed.drc \
--qp 16 \
--qfd 16 -qfr1 16 -qfr2 16 -qfr3 16 \
--qo 16 \
--qs 16 -qr 16 \
--cl 10
+# Encoder: Lossless parameters
+./build/draco_encoder -point_cloud -i /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999_2.ply -o /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999_2_compressed_lossless.drc -qp 0 -qfd 0 -qfr1 0 -qfr2 0 -qfr3 0 -qo 0 -qs 0 -qr 0 -cl 10
+
+# Decoder: Default parameters
+./build/draco_decoder -i /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999_2_compressed_lossless.drc -o /home/rajrup/Project/LiVoGS/gsplat/results/actorshq_l1_0.5_ssim_0.5_alpha_1.0/Actor01/Sequence1/4x/0/draco_ply/point_cloud_29999_2_decompressed_lossless.ply
 ```
 
-## Decode (C++ execution)
+Notes:
+```
+Higher QP = more precision = better quality = less compression (bigger files)
+qp: Quantization parameter for position (0 - 30, where 0 is lossless-noquantization and 30 means 30 bit precision, Default: 16)
+qfd: Quantization parameter for SH0 (DC) (0 - 30, where 0 is lossless-noquantization and 30 means 30 bit precision, Default: 16)
+qfr1: Quantization parameter for SH1 (0 - 30, where 0 is lossless-noquantization and 30 means 30 bit precision, Default: 16)
+qfr2: Quantization parameter for SH2 (0 - 30, where 0 is lossless-noquantization and 30 means 30 bit precision, Default: 16)
+qfr3: Quantization parameter for SH3 (0 - 30, where 0 is lossless-noquantization and 30 means 30 bit precision, Default: 16)
+qo: Quantization parameter for opacity (0 - 30, where 0 is lossless-noquantization and 30 means 30 bit precision, Default: 16)
+qs: Quantization parameter for scale (0 - 30, where 0 is lossless-noquantization and 30 means 30 bit precision, Default: 16)
+qr: Quantization parameter for rotation (0 - 30, where 0 is lossless-noquantization and 30 means 30 bit precision, Default: 16)
+cl: Compression level (0 - 10, 0 is fastest-least compression and 10 is slowest-most compression, Default: 7)
+```
+
+## Python API (In-Memory Pipeline)
+
+The Python module eliminates intermediate disk I/O by compressing and decompressing entirely in memory using numpy arrays.
+
+### Build
+
 ```bash
-./build_dir/draco_decoder \
--i ./myData/ficus_3dgs_compress.drc \
--o ./myData/ficus_3dgs_distorted.ply
+pip install pybind11 numpy plyfile
+
+cd DracoGS
+mkdir build && cd build
+cmake .. -DDRACOGS_BUILD_PYTHON=ON -Dpybind11_DIR=$(python -m pybind11 --cmakedir)
+make -j$(nproc)
 ```
 
-## Decode (Javascript)
+### Usage
 
-Check the html file (`/draco_adjusted/javascript/time_draco_decode.html`)
-There are some important path need to change, and you can search them using `//! [YC]` as the searching keyword. Good Luck!!
+```python
+import sys
+sys.path.insert(0, "build/compression")   # or wherever _dracogs.so lives
+sys.path.insert(0, "compression")
 
-Open the web server using the following command in the root folder
+from compression_decompression import read_gs_ply, encode_dracogs, decode_dracogs, save_gs_ply
+
+# 1. Read a 3DGS PLY (binary or ASCII) -> dict of numpy arrays
+gs = read_gs_ply("input.ply")
+
+# 2. Compress in memory -> bytes
+bitstream = encode_dracogs(gs, qp=16, qfd=8, qfr1=8, qfr2=8, qfr3=8, qo=8, qs=8, qr=8, cl=7)
+print(f"Compressed: {len(bitstream)} bytes")
+
+# 3. Decompress in memory -> dict of numpy arrays
+gs_decoded = decode_dracogs(bitstream)
+
+# 4. Save to PLY
+save_gs_ply(gs_decoded, "output.ply")
+
+# Optionally save/load the bitstream to/from disk
+with open("compressed.drc", "wb") as f:
+    f.write(bitstream)
 ```
-python -m http.server
-```
 
+### API Reference
 
-# For Experiment
-## Encode (Using my_encode.py and json file)
-```bash
-python my_encoder.py -jp ../myJson/template_sh0.json
-```
-
-## Decode (Using my_decode.py and json file)
-```bash
-python my_decoder.py -jp ../myJson/template.json
-```
-
-## Configuration json file
-Based on the template json file at `myJson/template.json`
-
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first
-to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-<!-- ## License
-
-[MIT](https://choosealicense.com/licenses/mit/) -->
+| Function | Description |
+|----------|-------------|
+| `read_gs_ply(path)` | Read 3DGS PLY, return `dict` of numpy float32 arrays |
+| `encode_dracogs(gs_data, qp=16, ...)` | Compress to Draco bitstream (`bytes`) |
+| `decode_dracogs(bitstream)` | Decompress from Draco bitstream to `dict` |
+| `save_gs_ply(gs_data, path)` | Write `dict` back to PLY |
