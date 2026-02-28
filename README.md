@@ -1,7 +1,7 @@
 ## Build Draco for 3DGS
 
 ```bash
-git clone --recursive https://github.com/Rajrup/Draco-for-3DGS.git DracoGS
+git clone --recursive https://github.com/Rajrup/DracoGS.git DracoGS
 cd DracoGS
 
 conda create -n dracogs python=3.10 -y
